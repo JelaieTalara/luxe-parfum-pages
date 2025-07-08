@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Luxe Parfum</title>
+
+  <!-- Google OAuth SDK -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/jwt-decode/build/jwt-decode.min.js"></script>
+
+  <!-- Style -->
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Georgia', serif;
+      background-color: #fdfcf9;
+      color: #333;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+  
+    .login-container {
+      background-color: #ffffff;
+      padding: 40px 30px;
+      border-radius: 20px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+      text-align: center;
+      width: 100%;
+      max-width: 400px;
+    }
+  
+    h2 {
+      font-family: 'Georgia', serif;
+      font-size: 28px;
+      color: #d4af37;
+      margin-bottom: 20px;
+      letter-spacing: 1px;
+    }
+  
+    .g_id_signin, .fb-login-button {
+      margin: 10px 0;
+    }
+  
+    #loader {
+      font-style: italic;
+      color: #888;
+      margin-top: 10px;
+    }
+  
+    #user-info {
+      margin-top: 20px;
+    }
+  
+    #user-info img {
+      width: 70px;
+      border-radius: 50%;
+      margin-top: 10px;
+      border: 2px solid #d4af37;
+    }
+  
+    button#logout-btn {
+      margin-top: 20px;
+      padding: 10px 20px;
+      background-color: #d4af37;
+      border: none;
+      color: white;
+      font-weight: bold;
+      border-radius: 30px;
+      cursor: pointer;
+      font-family: 'Arial', sans-serif;
+      display: none;
+      transition: background 0.3s ease;
+    }
+  
+    button#logout-btn:hover {
+      background-color: #bfa232;
+    }
+  </style>  
+</head>
+
+<body>
+    <div class="login-container">
+      <h2>Luxe Parfum</h2>
+  
+      <!-- Google Login Button -->
+      <div id="g_id_onload"
+           data-client_id="346011443259-nhcr49u2v8dedkge0kgo8aotobd22k9p.apps.googleusercontent.com"
+           data-callback="handleGoogleCredentialResponse"
+           data-auto_prompt="false">
+      </div>
+      <div class="g_id_signin"
+           data-type="standard"
+           data-shape="rectangular"
+           data-theme="outline"
+           data-text="sign_in_with"
+           data-size="large">
+      </div>
+  
+      <!-- Facebook Login Button -->
+      <div class="fb-login-button"
+           data-width=""
+           data-size="large"
+           data-button-type="login_with"
+           data-layout="default"
+           data-auto-logout-link="false"
+           data-use-continue-as="false"
+           data-scope="public_profile,email"
+           onlogin="checkLoginState();">
+      </div>
+  
+      <!-- Loader and User Info -->
+      <div id="loader" style="display:none;">Loading...</div>
+      <div id="user-info"></div>
+      <button id="logout-btn" onclick="logout()">Logout</button>
+
+  <!-- Facebook SDK -->
+  <script>
+    window.fbAsyncInit = function () {
+      FB.init({
+        appId: '1965694400628682',
+        cookie: true,
+        xfbml: true,
+        version: 'v19.0'
+      });
+      FB.XFBML.parse();
+    };
+
+    (function (d, s, id) {
+      var js, fjs = d.getElementsByTagName(s)[0];
+      if (d.getElementById(id)) return;
+      js = d.createElement(s); js.id = id;
+      js.src = "https://connect.facebook.net/en_US/sdk.js";
+      fjs.parentNode.insertBefore(js, fjs);
+    }(document, 'script', 'facebook-jssdk'));
+  </script>
+
+  <!-- Script for Login Logic -->
+  <script>
+    function displayUserInfo(platform, name, email, pictureUrl) {
+      document.getElementById("loader").style.display = 'none';
+      document.getElementById("user-info").innerHTML = `
+        <p><strong>${platform}User:</strong> ${name}</p>
+        <p><strong>Email:</strong> ${email}</p>
+        <img src="${pictureUrl}" alt="Profile Picture" />
+      `;
+      document.getElementById("logout-btn").style.display = 'inline-block';
+    }
+
+    // Google Login Callback
+    function handleGoogleCredentialResponse(response) {
+      document.getElementById('loader').style.display = 'block';
+      const data = jwt_decode(response.credential);
+      displayUserInfo(data.name, data.email, data.picture);
+
+      // Optional: Send token to backend for verification
+      // fetch('/verify-token', { method: 'POST', body: JSON.stringify({ token: response.credential }) })
+    }
+
+    // Facebook Login Callback
+    function checkLoginState() {
+      document.getElementById('loader').style.display = 'block';
+      FB.getLoginStatus(function (response) {
+        if (response.status === 'connected') {
+          FB.api('/me', { fields: 'name,email,picture' }, function (user) {
+            displayUserInfo(user.name, user.email, user.picture.data.url);
+          });
+        } else {
+          document.getElementById('loader').style.display = 'none';
+        }
+      });
+    }
+
+    function logout() {
+      // Clear UI
+      document.getElementById("user-info").innerHTML = '';
+      document.getElementById("loader").style.display = 'none';
+      document.getElementById("logout-btn").style.display = 'none'; // Hides Logout button again
+
+      // Facebook logout
+      if (typeof FB !== 'undefined') {
+        FB.logout(function() {
+            console.log("Logged out from Facebook");
+        });
+      }
+
+      alert("You have been logged out.");
+    }
+  </script>
+</body>
+</html>
