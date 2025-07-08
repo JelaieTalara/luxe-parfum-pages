@@ -152,7 +152,7 @@
     function handleGoogleCredentialResponse(response) {
       document.getElementById('loader').style.display = 'block';
       const data = jwt_decode(response.credential);
-      displayUserInfo(data.name, data.email, data.picture);
+      displayUserInfo("Google", data.name, data.email, data.picture);
 
       // Optional: Send token to backend for verification
       // fetch('/verify-token', { method: 'POST', body: JSON.stringify({ token: response.credential }) })
@@ -164,7 +164,7 @@
       FB.getLoginStatus(function (response) {
         if (response.status === 'connected') {
           FB.api('/me', { fields: 'name,email,picture' }, function (user) {
-            displayUserInfo(user.name, user.email, user.picture.data.url);
+            displayUserInfo("Facebook", user.name, user.email, user.picture.data.url);
           });
         } else {
           document.getElementById('loader').style.display = 'none';
